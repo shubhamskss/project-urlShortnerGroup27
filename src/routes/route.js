@@ -1,0 +1,26 @@
+const express = require('express');
+const router = express.Router();
+
+const userController=require("../controllers/userController")
+const BookController=require("../controllers/BookController")
+const reviewController=require("../controllers/reviewcontroller")
+const middleWare=require("../middleware/mid")
+
+router.post("/register",userController.UserRegister)
+router.post("/login",userController.login)
+router.post("/books",middleWare.authent,BookController.createBook)
+router.get("/books",middleWare.authent,BookController.getBooks)
+router.get("/books/:bookId",middleWare.authent,BookController.getBooksBYid)
+// router.put("/books/:bookId",BookController.updateBook)
+router.put('/books/:bookId',middleWare.authent,middleWare.authorise,BookController.updateBook)
+
+router.delete("/books/:bookId",BookController.deleteBooks)
+router.post("/books/:bookId/review",reviewController.createReview)
+router.put("/books/:bookId/review/:reviewId",middleWare.authent,middleWare.authorise,reviewController.updateReview)
+router.delete("/books/:bookId/review/:reviewId",middleWare.authent,middleWare.authorise,reviewController.deletereview)
+
+
+
+
+
+module.exports=router;
