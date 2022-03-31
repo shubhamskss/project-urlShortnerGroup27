@@ -1,7 +1,7 @@
 const reviewModel = require("../models/reviewModel");
 const BookModel = require("../models/BooksModel");
 const mongoose = require("mongoose");
-const BooksModel = require("../models/BooksModel");
+
 const isValid = function (value) {
   if (typeof value === "undefined" || typeof value == "null") {
     return false;
@@ -53,7 +53,7 @@ let createReview=async function(req,res){
      let bookid=req.params.bookId
      if(!isValid(bookid)){return res.status(400).send({status:false,msg:"please enter bookId"})}
      if(!isValidObjectId(bookid)){return res.status(400).send({status:false,msg:"invalid bookId"})}
-     let checkId=await BooksModel.findById(bookid)
+     let checkId=await BookModel.findById(bookid)
      
      if(!checkId){return res.status(400).send({status:false,msg:"book with this id not found"})}
      if(checkId.isDeleted==true){return res.status(404).send({status:true,msg:"Deleted book"})}
@@ -148,7 +148,7 @@ const updateReview = async function (req, res) {
       req.body,
       { new: true }
     );
-    res.send(updatedReview);
+    res.status(201).send(updatedReview);
   } catch (err) {
     res.status(500).send({ status: false, msg: err.message });
   }
@@ -169,6 +169,7 @@ let deletereview = async function (req, res) {
       return;
     }
 
+    const review = await reviewModel.findById(reviewId);
     let checkbookId = await BookModel.findById(bookId);
     if (!checkbookId) {
       return res
@@ -181,30 +182,50 @@ let deletereview = async function (req, res) {
         .status(404)
         .send({ status: false, msg: "review with this Id not found" });
     }
-    console.log(checkreviewId);
-    if (checkreviewId.isDeleted == true) {
+    if (!(checkreviewId._id == reviewId && checkreviewId.bookId == bookId)) {
+      return res
+        .status(400)
+        .send({
+          status: false,
+          msg: "bookid and reviewid are of diffrent object",
+        })};
+
+    if (review.isDeleted == true) {
       res.status(400).send({ status: false, msg: "review is already deleted" });
       return;
     }
-    console.log(checkreviewId);
-    if (!(checkreviewId._id == reviewId && checkreviewId.bookId == bookId)) {
-      return res.status(400).send({
-        status: false,
-        msg: "bookid and reviewid are of diffrent object",
-      });
-    }
+    
+    
+    
     let deleteReview = await reviewModel.findByIdAndUpdate(
       { _id: reviewId },
-      { isDeleted: true },
+      { isDeleted: true, deletedAt: new Date() },
       { new: true }
     );
 
-    res.status(200).send({
-      status: false,
-      msg: " successfully delete content",
-      data: deleteReview,
-    });
-  } catch (error) {
+    let reviewcount=0
+    let getdata=await reviewModel.find().select({review:1,rating:1,reviewedBy:1,isDeleted:1,bookId:1})
+     
+     
+    for(let i=0;i<getdata.length;i++){
+        
+        
+        if(getdata[i].isDeleted!==true){
+     reviewcount++
+    }}
+    
+console.log({"review count is":reviewcount})
+  
+      res
+        .status(200)
+        .send({
+          status: true,
+          msg: " successfully delete content",
+          data: deleteReview,
+        });
+      return;
+    }
+   catch (error) {
     return res.status(500).send({ status: false, msg: "server error" });
   }
 };

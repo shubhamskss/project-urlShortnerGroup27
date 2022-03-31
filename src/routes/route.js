@@ -14,10 +14,10 @@ router.get("/books/:bookId",middleWare.authent,BookController.getBooksBYid)
 // router.put("/books/:bookId",BookController.updateBook)
 router.put('/books/:bookId',middleWare.authent,middleWare.authorise,BookController.updateBook)
 
-router.delete("/books/:bookId",BookController.deleteBooks)
+router.delete("/books/:bookId",middleWare.authent,middleWare.authorise,BookController.deleteBooks)
 router.post("/books/:bookId/review",reviewController.createReview)
-router.put("/books/:bookId/review/:reviewId",middleWare.authent,middleWare.authorise,reviewController.updateReview)
-router.delete("/books/:bookId/review/:reviewId",middleWare.authent,middleWare.authorise,reviewController.deletereview)
+router.put("/books/:bookId/review/:reviewId",reviewController.updateReview)
+router.delete("/books/:bookId/review/:reviewId",reviewController.deletereview)
 
 
 
