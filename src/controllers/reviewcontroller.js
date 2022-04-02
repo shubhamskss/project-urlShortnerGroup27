@@ -24,9 +24,8 @@ const isvalidStringOnly = function (value) {
 };
 
 const isvalidNumber = function (value) {
-  if (typeof value === "number") {
-    return true;
-  }
+  if(typeof value!=='number'&& value.trim().length==0)return false;
+return true;
 };
 const isValidObjectId = function (objectId) {
   return mongoose.Types.ObjectId.isValid(objectId);
@@ -47,42 +46,35 @@ const isvalidrating = function (rating) {
 };
 let createReview=async function(req,res){
     
-    try{ let data=req.body 
-     if(!isvalidRequesbody(data)){return res.status(400).send({status:false,msg:"invalid data"})}
-     const {reviewedBy,reviewedAt,rating,review,bookId}=data
-     let bookid=req.params.bookId
-     if(!isValid(bookid)){return res.status(400).send({status:false,msg:"please enter bookId"})}
-     if(!isValidObjectId(bookid)){return res.status(400).send({status:false,msg:"invalid bookId"})}
-     let checkId=await BookModel.findById(bookid)
-     
-     if(!checkId){return res.status(400).send({status:false,msg:"book with this id not found"})}
-     if(checkId.isDeleted==true){return res.status(404).send({status:true,msg:"Deleted book"})}
-     if(!isValid(bookId)){return res.status(400).send({status:false,msg:"please give bookid in body"})}
-     if(bookid!=data.bookId){return res.status(400).send({status:false,msg:"pathparam bookid and body bookid is diffrent"})}
-     
- 
- 
-     if(!isValid(reviewedAt)){return res.status(400).send({status:false,msg:"please enter reviewed time"})}
-     if(!isValidDate(reviewedAt)){return res.status(400).send({status:false,msg:"please provide date in YYYY-MM-DD format"})}
-     if(!isvalidNumber(rating)){return res.status(400).send({status:false,msg:"please give valid rating"})}
-     if(!isvalidrating(rating)){return res.status(400).send({status:false,msg:"rating should take number between 1 to 5"})}
-     let saveReview= await reviewModel.create(data)
-     let reviewcount=0
- 
-     let getdata=await reviewModel.find().select({review:1,rating:1,reviewedBy:1,isDeleted:1,bookId:1})
-     
-     
-     for(let i=0;i<getdata.length;i++){
-         
-         
-         if(getdata[i].isDeleted!==true){
-      reviewcount++
-     }}
-      getdata.unshift({reviewcount:reviewcount})
-     
-     res.status(201).send({status:true,data:getdata})}
-     catch(err){res.status(500).send({status:false,error:err.message})}
- }
+  try{ let data=req.body 
+   if(!isvalidRequesbody(data)){return res.status(400).send({status:false,msg:"invalid data"})}
+   const {reviewedBy,reviewedAt,rating,review,bookId}=data
+   let bookid=req.params.bookId
+   if(!isValid(bookid)){return res.status(400).send({status:false,msg:"please enter bookId"})}
+   if(!isValidObjectId(bookid)){return res.status(400).send({status:false,msg:"invalid bookId"})}
+   let book=await BookModel.findById(bookid)
+   
+   if(!book){return res.status(400).send({status:false,msg:"book with this id not found"})}
+   if(book.isDeleted==true){return res.status(404).send({status:true,msg:"Deleted book"})}
+   if(!isValid(bookId)){return res.status(400).send({status:false,msg:"please give bookid in body"})}
+   if(bookid!=data.bookId){return res.status(400).send({status:false,msg:"pathparam bookid and body bookid is diffrent"})}
+   
+
+
+   if(!isValid(reviewedAt)){return res.status(400).send({status:false,msg:"please enter reviewed time"})}
+   if(!isValidDate(reviewedAt)){return res.status(400).send({status:false,msg:"please provide date in YYYY-MM-DD format"})}
+   if(!isvalidNumber(rating)){return res.status(400).send({status:false,msg:"please give valid rating"})}
+   if(!isvalidrating(rating)){return res.status(400).send({status:false,msg:"rating should take number between 1 to 5"})}
+   let saveReview= await reviewModel.create(data)
+   book.reviews=book.reviews+1
+   await book.save()
+   const newdata=book.toObject()
+   newdata['reviewsdata']=saveReview
+  
+   
+   res.status(201).send({status:true,data:newdata})}
+   catch(err){res.status(500).send({status:false,error:err.message})}
+}
 // =================================================================================================================================================
 
 // =======================================================================================================================================================
@@ -112,7 +104,7 @@ const updateReview = async function (req, res) {
       });
       return;
     }
-    console.log(review1);
+    
     if (!(review1._id == reviewId && review1.bookId == bookId)) {
       return res.status(400).send({
         status: false,
@@ -148,7 +140,10 @@ const updateReview = async function (req, res) {
       req.body,
       { new: true }
     );
-    res.status(201).send(updatedReview);
+    const data1=book.toObject()
+    data1['reviewsData']=updatedReview
+
+    res.status(200).send({status:true,msg:"updated",data:data1});
   } catch (err) {
     res.status(500).send({ status: false, msg: err.message });
   }
@@ -214,7 +209,7 @@ let deletereview = async function (req, res) {
      reviewcount++
     }}
     
-console.log({"review count is":reviewcount})
+
   
       res
         .status(200)

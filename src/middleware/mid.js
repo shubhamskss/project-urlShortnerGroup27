@@ -41,9 +41,13 @@ let authorise = async function (req, res, next) {
         .send({ status: false, msg: "you are not authenticated" });
     }
     let bookid = await BookModel.findById(bookId);
-
+    
+if(!bookid){return res.status(404).send({status:false,msg:"no document found with given id"})}
     let BooktobeModified = bookid.userId;
     let userloggedin = decodetoken.userId;
+    if(!isValidObjectId(BooktobeModified)){return res.status(400).send({status:false,msg:"bad request"})}
+    if(!userloggedin){return res.status(400).send({status:false,msg:"bad request"})}
+    
     if (BooktobeModified != userloggedin) {
       return res
         .status(403)
@@ -51,6 +55,7 @@ let authorise = async function (req, res, next) {
       
     }
     next()
+  
   } catch (err) {
     return res.status(500).send({ status: false, error: err.message });
   }

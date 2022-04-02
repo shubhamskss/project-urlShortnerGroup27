@@ -25,7 +25,7 @@ const BookSchema = new mongoose.Schema({
         required: true
     },
     subcategory: {
-        type:[String],
+        type:[{type:String}],
         required:true
     },
     reviews: {
@@ -45,7 +45,8 @@ const BookSchema = new mongoose.Schema({
         required: true,
         default:null,
     
-    }
+    },
+    bookCover:String,
 
 }, { timestamps: true })
 module.exports = mongoose.model("Bookgroup27", BookSchema)

@@ -8,7 +8,11 @@ const isValid = function (value) {
     return false;
   }
 
-  if (typeof value === ("string" || "Array") && value.trim().length > 0) {
+  if (typeof value === ("string") && value.trim().length > 0) {
+    return true;
+  }
+ 
+  if (typeof value === ("object") && Object.keys(value).length > 0) {
     return true;
   }
 };
@@ -42,7 +46,7 @@ const createBook = async function (req, res) {
 
     let userid = requestbody.userId;
 
-    if (!isValidObjectId(userid) && !isValid(userid)) {
+    if (!isValidObjectId(userid)) {
       return res.status(400).send({ status: false, msg: "incorrect userid" });
     }
 
@@ -52,7 +56,7 @@ const createBook = async function (req, res) {
         .send({ status: false, msg: "request body is required" });
     }
 
-    const { title, excerpt, ISBN, category, subcategory, releasedAt,review } =
+    const { title, excerpt, ISBN, category, subcategory, releasedAt,review ,bookCover} =
       requestbody;
 
     if (!isValid(title)) {
@@ -61,7 +65,7 @@ const createBook = async function (req, res) {
         .send({ status: false, msg: "please give valid title" });
     }
 
-    let duplicatetitle = await BookModel.findOne({ title: requestbody.title });
+    let duplicatetitle = await BookModel.findOne({ title:title });
 
     if (duplicatetitle) {
       return res.status(400).send({ status: false, msg: "Duplicate title" });
@@ -79,7 +83,7 @@ const createBook = async function (req, res) {
         .send({ status: false, msg: "please give valid ISBN" });
     }
 
-    let duplicateIsbn = await BookModel.findOne({ ISBN: requestbody.ISBN });
+    let duplicateIsbn = await BookModel.findOne({ ISBN:ISBN });
     console.log(ISBN);
     if (duplicateIsbn) {
       return res.status(400).send({ status: false, msg: "Duplicate ISBN" });
@@ -91,7 +95,7 @@ const createBook = async function (req, res) {
         .send({ status: false, msg: "please give category" });
     }
 
-    if (!isvalidStringOnly(subcategory)) {
+    if (!isValid(subcategory)) {
       return res
         .status(400)
         .send({ status: false, msg: "please give valid subcategory" });
@@ -146,7 +150,7 @@ let getBooks = async function (req, res) {
       if (!search1) {
         return res.status(404).send({ status: false, msg: "no data found" });
       }
-      let getdata=await reviewModel.find({bookId:search1[0]._id})
+      
      return res.status(200).send({ status: true, msg: search1 });
     }
     const filterquery = { isDeleted: false };
@@ -155,6 +159,7 @@ let getBooks = async function (req, res) {
     if (!isvalidStringOnly(userId)) {
       return res.status(400).send("invalid userId");
     }
+    
 
     if (isValid(userId) && isValidObjectId(userId)) {
       filterquery.userId = userId;
@@ -174,16 +179,17 @@ let getBooks = async function (req, res) {
       return res.status(400).send({ staus: false, msg: "category required" });
     }
 
+    
     if (isValid(subcategory)) {
       filterquery.subcategory = subcategory.trim();
     }
-
-    if (!isvalidStringOnly(subcategory)) {
+if(subcategory){
+    if (!isValid(subcategory)){
       return res
         .status(400)
         .send({ status: false, msg: "subcategory is required" });
-    }
-console.log(filterquery)
+    }}
+
     const searchBooks = await BookModel.find(filterquery)
       .select({
         _id: 1,
@@ -200,11 +206,7 @@ console.log(filterquery)
     if (Array.isArray(searchBooks) && searchBooks.length == 0) {
       return res.status(404).send({ status: false, msg: "No books found" });
     }
-    let getdata
-    for(let i=0;i<searchBooks.length;i++){
-      getdata=await reviewModel.find({bookId:searchBooks[i]._id})}
-     
-     console.log(getdata)
+    
      
      
      
@@ -279,6 +281,8 @@ const updateBook = async function (req, res) {
     if (!isValidObjectId(Id)) {
       return res.status(400).send({ status: false, msg: "invalid objectid" });
     }
+    let checkidinDb=await BookModel.findById(Id)
+    if(!checkidinDb){return res.status(404).send({status:false,msg:"this id is not found"})}
     let { title, excerpt, releasedAt, ISBN } = req.body;
 
     if (!isvalidStringOnly(title)) {

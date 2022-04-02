@@ -18,7 +18,7 @@ isvalidRequesbody = function (requestbody) {
 };
 
 const isvalidTitle = function (title) {
-  return ["Mr", "mrs", "miss"].indexOf(title) !== -1;
+  return ["Mr", "Mrs", "Miss"].indexOf(title) !== -1;
 };
 
 const UserRegister = async function (req, res) {
@@ -49,13 +49,13 @@ const UserRegister = async function (req, res) {
       return res.status(400).send({ status: false, msg: "phone is required" });
     }
 
-    if (!/^([+]\d{2})?\d{10}$/.test(requestbody.phone)) {
+    if (!/^([+]\d{2})?\d{10}$/.test(phone)) {
       return res
         .status(400)
         .send({ status: false, msg: "please provide a valid phone Number" });
     }
 
-    let duplicatephone = await UserModel.findOne({ phone: requestbody.phone });
+    let duplicatephone = await UserModel.findOne({ phone:phone });
 
     if (duplicatephone) {
       return res
@@ -74,7 +74,7 @@ const UserRegister = async function (req, res) {
     }
 
     const isemailAlreadyUsed = await UserModel.findOne({
-      email: requestbody.email,
+      email:email,
     });
 
     if (isemailAlreadyUsed) {
