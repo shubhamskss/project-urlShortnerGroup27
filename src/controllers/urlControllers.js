@@ -49,20 +49,27 @@ const urlshorten = async function (req, res) {
       return res.status(400).send({ status: false, msg: "Invalid base URL" });
     }
 
-    // if valid, we create the url code
+
     const urlCode = shortid.generate().toLowerCase();
 
     if (validUrl.isUri(longUrl)) {
       let cachedData = await GET_ASYNC(`${longUrl}`);
+      console.log(cachedData)
       if (cachedData) {
-        return res.status(200).send({ status: true,msg:"already created", data: JSON.parse(cachedData)});
+        const data=JSON.parse(cachedData)
+
+        return res.status(200).send({ status: true,msg:"already created", data:data});
       }
+    
       let url = await urlModel.findOne({ longUrl }).select({ _id: 0, __v: 0 });
-      await SET_ASYNC(`${longUrl}`, JSON.stringify(url));
+
+      
+
       if (url) {
         return res.status(200).send({ status: true, data:JSON.parse(url) });
       } else {
         const shortUrl = baseUrl + "/" + urlCode;
+        await SET_ASYNC(`${longUrl}`, JSON.stringify({longUrl,shortUrl,urlCode}));
 
         url = await urlModel.create({
           longUrl,
