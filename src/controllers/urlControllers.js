@@ -110,15 +110,19 @@ if(cachedData){
     else{
          let fetchUrl = await urlModel
       .findOne({ urlCode })
-      .select({ _id: 0, __v: 0 });
+      
+
 await SET_ASYNC(`${urlCode}`,JSON.stringify(fetchUrl))
-    if (!fetchUrl) {
+
+if(fetchUrl){return res.status(302).redirect(fetchUrl.longUrl)}
+
+    else {
       return res
         .status(404)
         .send({ status: false, msg: " this urlCode not found" });
     }}
 
-    res.status(302).redirect(fetchUrl.longUrl);
+
   } catch (err) {
     res.status(500).send({ status: false, error: err.message });
   }
